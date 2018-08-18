@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -38,10 +39,26 @@ func main() {
 	boldwhite.Print("Server running at ")
 	boldcyan.Printf("http://0.0.0.0:%d\n", port)
 
-	http.Handle("/", http.FileServer(http.Dir(dir)))
+	fileHandler := http.FileServer(http.Dir(dir))
+	wrappedHandler := loggingHandler(fileHandler)
+	http.Handle("/", wrappedHandler)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
 		panic(err)
 	}
+}
+
+func loggingHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		h.ServeHTTP(w, r)
+		boldwhite.Printf(
+			"%s\t%s\t%s\t%s\n",
+			start.Format("06-01-02 15:04:05"),
+			r.RemoteAddr,
+			r.RequestURI,
+			time.Since(start),
+		)
+	})
 }
 
 func bindFlags() {
