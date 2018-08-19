@@ -22,7 +22,7 @@ func main() {
 		switch payload.(type) {
 		case github.PushPayload:
 			push := payload.(github.PushPayload)
-			branch := strings.TrimPrefix(push.Ref, "regs/heads/")
+			branch := strings.TrimPrefix(push.Ref, "refs/heads/")
 			fmt.Printf("branch: %+v\n", branch)
 		}
 	})
