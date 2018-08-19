@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"net/http"
 
 	"gopkg.in/go-playground/webhooks.v5/github"
@@ -21,7 +22,8 @@ func main() {
 		switch payload.(type) {
 		case github.PushPayload:
 			push := payload.(github.PushPayload)
-			fmt.Printf("%+v\n", push)
+			branch := strings.TrimPrefix(push.Ref, "regs/heads/")
+			fmt.Printf("branch: %+v\n", branch)
 		}
 	})
 	http.ListenAndServe(":3001", nil)
