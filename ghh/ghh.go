@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"net/http"
+	"os/exec"
+	"strings"
 
 	"gopkg.in/go-playground/webhooks.v5/github"
 )
@@ -23,7 +24,19 @@ func main() {
 		case github.PushPayload:
 			push := payload.(github.PushPayload)
 			branch := strings.TrimPrefix(push.Ref, "refs/heads/")
+			name := push.Repository.Name
+			url := push.Repository.CloneURL
+
 			fmt.Printf("branch: %+v\n", branch)
+
+			cmdStr := fmt.Sprintf("./deploy.sh ./ %s %s", name, url)
+			cmd := exec.Command("/bin/sh", "-c", cmdStr)
+			_, err := cmd.Output()
+
+			if err != nil {
+				println(err.Error())
+				return
+			}
 		}
 	})
 	http.ListenAndServe(":3001", nil)
