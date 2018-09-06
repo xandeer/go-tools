@@ -77,8 +77,7 @@ func bindFlags() {
 func getLocalIP() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		os.Stderr.WriteString("Oops: " + err.Error() + "\n")
-		os.Exit(1)
+		return "127.0.0.1"
 	}
 
 	for _, a := range addrs {
