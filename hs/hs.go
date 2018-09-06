@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -40,6 +41,8 @@ func main() {
 	green.Printf("path: %s\n", http.Dir(dir))
 	boldwhite.Print("Server running at ")
 	boldcyan.Printf("http://0.0.0.0:%d\n", port)
+	boldwhite.Print("Upload ip or domain: ")
+	boldcyan.Printf("%v\n", ip)
 
 	fileHandler := http.FileServer(http.Dir(dir))
 	http.Handle("/", withLogging(fileHandler))
@@ -67,8 +70,25 @@ func withLogging(h http.Handler) http.Handler {
 func bindFlags() {
 	flag.IntVar(&port, "p", 9999, "Port")
 	flag.StringVar(&dir, "d", "./", "Directory")
-	flag.StringVar(&ip, "i", "127.0.0.1", "IP or domain name")
+	flag.StringVar(&ip, "i", getLocalIP(), "IP or domain name")
 	flag.Parse()
+}
+
+func getLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		os.Stderr.WriteString("Oops: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	for _, a := range addrs {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return "127.0.0.1"
 }
 
 func fixRelativeDir(dir string) string {
